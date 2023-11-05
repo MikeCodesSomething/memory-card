@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Scoreboard from "./Scoreboard";
 
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max) + 1;
@@ -22,6 +23,8 @@ export default function Gameboard() {
   const [pokemonDetails, setPokemonDetails] = useState<
     { id: number; url: string }[]
   >([]);
+  const [selectedPokemonList, setSelectedPokemonList] = useState<number[]>([]);
+  const [gameOver, setGameOver] = useState(false);
 
   function loadImage(
     id: number,
@@ -47,6 +50,40 @@ export default function Gameboard() {
       });
   }
 
+  function checkCorrect(event: React.MouseEvent<HTMLImageElement>) {
+    const selectedPokemonId = event.currentTarget.getAttribute("data-id");
+    if (selectedPokemonId === null) return;
+    //If a unique pokemon is clicked
+    if (selectedPokemonList.indexOf(parseInt(selectedPokemonId)) === -1) {
+      //If the player has already selected 9 pokemon, they win when selecting 10th
+      if (selectedPokemonList.length === 9) triggerGameOver();
+      else {
+        const shuffledPokemonList = shuffle(pokemonDetails);
+        setPokemonDetails(shuffledPokemonList);
+      }
+      setSelectedPokemonList([
+        ...selectedPokemonList,
+        parseInt(selectedPokemonId),
+      ]);
+    }
+    //If a pokemon is clicked twice it's game over
+    else triggerGameOver();
+  }
+
+  function triggerGameOver() {
+    setPokemonDetails([]);
+    setGameOver(true);
+    return;
+  }
+
+  function shuffle<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   useEffect(() => {
     const randomPokemonList = getRandomArray(151, 10);
 
@@ -61,11 +98,19 @@ export default function Gameboard() {
     });
   }, []);
   return (
-    <div>
-      {pokemonDetails.length > 0 &&
-        pokemonDetails.map((pokemon) => (
-          <img key={pokemon.id} src={pokemon.url}></img>
-        ))}
-    </div>
+    <>
+      <Scoreboard score={selectedPokemonList.length} gameOver={gameOver} />
+      <div>
+        {pokemonDetails.length > 0 &&
+          pokemonDetails.map((pokemon) => (
+            <img
+              data-id={pokemon.id}
+              key={pokemon.id}
+              src={pokemon.url}
+              onClick={checkCorrect}
+            ></img>
+          ))}
+      </div>
+    </>
   );
 }

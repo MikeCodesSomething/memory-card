@@ -1,10 +1,8 @@
-import { useState } from "react"
-
-export default function Scoreboard() {
-    const [score, setScore] = useState(0)
-
+export default function Scoreboard( {score, gameOver} : {score: number, gameOver: boolean} ) {
     return (<>
+    {gameOver && score<10 && <h2>Game Over</h2>}
+    {gameOver && score===10 && <h2>You Win!</h2>}
     <div>Score: {score}</div>
-    <button onClick={() => setScore(score+1)}>increase score</button>
+    {gameOver && <button onClick={() => window.location.reload()}>Play Again</button>}
     </>)
 }
